@@ -14,6 +14,63 @@ abstract class Kohana_Database {
 	const INSERT =  2;
 	const UPDATE =  3;
 	const DELETE =  4;
+	
+	 /**
+	* @var array SQL standard types
+	*/
+	protected static $_types = array(
+		// SQL-92
+		'bit'								=> array('type' => 'string', 'exact' => TRUE),
+		'bit varying'						=> array('type' => 'string'),
+		'char'								=> array('type' => 'string', 'exact' => TRUE),
+		'char varying'						=> array('type' => 'string'),
+		'character'							=> array('type' => 'string', 'exact' => TRUE),
+		'character varying'					=> array('type' => 'string'),
+		'date'								=> array('type' => 'string'),
+		'dec'								=> array('type' => 'float', 'exact' => TRUE),
+		'decimal'							=> array('type' => 'float', 'exact' => TRUE),
+		'double precision'					=> array('type' => 'float'),
+		'float'								=> array('type' => 'float'),
+		'int'								=> array('type' => 'int', 'min' => '-2147483648', 'max' => '2147483647'),
+		'integer'							=> array('type' => 'int', 'min' => '-2147483648', 'max' => '2147483647'),
+		'interval'							=> array('type' => 'string'),
+		'national char'						=> array('type' => 'string', 'exact' => TRUE),
+		'national char varying' 			=> array('type' => 'string'),
+		'national character' 				=> array('type' => 'string', 'exact' => TRUE),
+		'national character varying' 		=> array('type' => 'string'),
+		'nchar' 							=> array('type' => 'string', 'exact' => TRUE),
+		'nchar varying'						=> array('type' => 'string'),
+		'numeric'							=> array('type' => 'float', 'exact' => TRUE),
+		'real'								=> array('type' => 'float'),
+		'smallint'							=> array('type' => 'int', 'min' => '-32768', 'max' => '32767'),
+		'time'								=> array('type' => 'string'),
+		'time with time zone'				=> array('type' => 'string'),
+		'timestamp'							=> array('type' => 'string'),
+		'timestamp with time zone'			=> array('type' => 'string'),
+		'varchar'							=> array('type' => 'string'),
+		 
+		// SQL:1999
+		//'array','ref','row'
+		'binary large object'				=> array('type' => 'string', 'binary' => TRUE),
+		'blob'								=> array('type' => 'string', 'binary' => TRUE),
+		'boolean'							=> array('type' => 'bool'),
+		'char large object'					=> array('type' => 'string'),
+		'character large object'			=> array('type' => 'string'),
+		'clob'								=> array('type' => 'string'),
+		'national character large object'	=> array('type' => 'string'),
+		'nchar large object'				=> array('type' => 'string'),
+		'nclob'								=> array('type' => 'string'),
+		'time without time zone'			=> array('type' => 'string'),
+		'timestamp without time zone'		=> array('type' => 'string'),
+		 
+		// SQL:2003
+		'bigint'							=> array('type' => 'int', 'min' => '-9223372036854775808', 'max' => '9223372036854775807'),
+		 
+		// SQL:2008
+		'binary'							=> array('type' => 'string', 'binary' => TRUE, 'exact' => TRUE),
+		'binary varying'					=> array('type' => 'string', 'binary' => TRUE),
+		'varbinary'							=> array('type' => 'string', 'binary' => TRUE),
+	);
 
 	/**
 	 * @var  array  Database instances
@@ -81,7 +138,7 @@ abstract class Kohana_Database {
 	{
 		// Set the instance name
 		$this->_instance = $name;
-
+		
 		// Store the config locally
 		$this->_config = $config;
 
@@ -237,15 +294,92 @@ abstract class Kohana_Database {
 		{
 			$result = $this->query(Database::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix().$table), FALSE);
 		}
-
+		
 		$columns = array();
+		
+		//Get all static variables belonging to the active driver
+		$vars = get_class_vars('Database_'.ucfirst($this->_config['type']));
 
 		if ($details)
 		{
 			foreach ($result as $row)
 			{
-				// Grab all column details as column => details
-				$columns[$row['COLUMN_NAME']] = $row;
+				$db = Database::instance();
+				
+				$type = strtolower($row['DATA_TYPE']);
+				$column = new Database_Table_Column;
+				
+				if (isset($vars['_types'][$type]))
+				{
+					//Found native type, use it.
+					$type = $vars['_types'][$type]['type'];
+				}
+				elseif (isset(Database::$_types[$type]))
+				{
+					//Could not find native type, overloaded to defaults.
+					$type = Database::$_types[$type]['type'];
+				}
+				else
+				{
+					throw new Kohana_Exception('Datatype not recognised :data_type', 
+						array('data_type' => $type));
+				}
+				
+				if(class_exists($class = 'Database_Table_Column_'.ucfirst($type)))
+				{
+					$column = new $class;
+				}
+				
+				switch($type)
+				{
+					//Load all datatype specific values
+					case 'float' :
+					case 'int' : 
+						$column->precision = $row['NUMERIC_PRECISION'];
+						$column->scale = $row['NUMERIC_SCALE'];
+						break;
+					case 'string' :
+						$column->character_set = $row['CHARACTER_SET_NAME'];
+						$column->collation_name = $row['COLLATION_NAME'];
+						$column->maximum_length = $row['CHARACTER_MAXIMUM_LENGTH'];
+						$column->octet_length = $row['CHARACTER_OCTET_LENGTH'];
+						break;
+				}
+				
+				//Load all the non specific datatype values
+				$column->name = $row['COLUMN_NAME'];
+				$column->default = $row['COLUMN_DEFAULT'];
+				$column->is_nullable = $row['IS_NULLABLE'] == 'YES';
+				$column->is_primary = $row['COLUMN_KEY'] == 'PRI';
+				$column->descrition = $row['COLUMN_COMMENT'];
+				
+				//Lets fetch any aditional parametres eg enum()
+				preg_match("/^\S+\((.*?)\)/", $row['COLUMN_TYPE'], $matches);
+				
+				if(isset($matches[1]))
+				{
+					//Replace all quotations
+					$params = str_replace('\'', '', $matches[1]);
+					
+					if(strpos($params, ',') === false)
+					{
+						//Return value as it is
+						$column->datatype = array($row['DATA_TYPE'], $params);
+					}
+					else
+					{
+						//Commer seperated values are exploded into an array
+						$column->datatype = array($row['DATA_TYPE'], explode(',', $params));
+					}
+				}
+				else
+				{
+					//No additional params
+					$column->datatype = array($row['DATA_TYPE']);
+				}
+				
+				//Add it to the column stack
+				$columns[] = $column;
 			}
 		}
 		else
