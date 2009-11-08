@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 /**
- * Database query builder for UPDATE statements.
+ * Database query builder for CREATE statements.
  *
  * @package    Database
  * @author     Kohana Team
@@ -27,9 +27,9 @@ class Kohana_Database_Query_Builder_Create extends Database_Query_Builder {
 		$query = 'CREATE TABLE '.$db->quote_table($this->_table).' (';
 		$columns = array();
 		
-		foreach($this->_columns as $name => $params)
+		foreach($this->_columns as $column)
 		{
-			$columns[] = Database_Query_Builder::compile_column($name, $params);
+			$columns[] = Database_Query_Builder::compile_column($db, $column);
 		}
 		
 		$query .= implode($columns, ',');

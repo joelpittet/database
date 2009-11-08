@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 /**
- * Database query builder for UPDATE statements.
+ * Database query builder for ALTER statements.
  *
  * @package    Database
  * @author     Kohana Team
@@ -50,10 +50,10 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	/**
 	 * Add a column
 	 *
-	 * @param   array The column data.
+	 * @param   object The column object.
 	 * @return  void
 	 */
-	public function add( array $column)
+	public function add( Database_Table_Column $column)
 	{
 		$this->_add_columns[] = $column;
 	}
@@ -61,10 +61,11 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	/**
 	 * Modify a column.
 	 *
-	 * @param   array The new column data.
+	 * @param	string	The name of the column you wish to modify.
+	 * @param   object	The new column data.
 	 * @return  void
 	 */
-	public function modify( array $column)
+	public function modify($column_name, Database_Table_Column $column)
 	{
 		$this->_modify_columns[] = $column;
 	}
@@ -75,7 +76,7 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 * @param   string The name of the column to drop
 	 * @return  void
 	 */
-	public function drop($column)
+	public function drop($column_name)
 	{
 		$this->_drop_columns[] = $column;
 	}

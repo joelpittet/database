@@ -87,48 +87,17 @@ abstract class Kohana_Database_Query_Builder extends Database_Query {
 	 * Compiles a table column from a given parameter array.
 	 *
 	 * @param   object  Database instance
-	 * @param   string  Column name
-	 * @param   array   Column parameters
+	 * @param   object  Column object
 	 * @return  string
 	 */
-	public static function compile_column(Database $db, $name, array $params)
+	public static function compile_column(Database $db, Database_Table_Column $column)
 	{
-		$data_type = $params['datatype'];
-		$options = $params['options'];
+		$sql = $db->quote_identifier($column->name).' ';
+
+		$sql .= $column->compile_datatype().' ';
+		$sql .= $column->compile_constraints();
 		
-		$data = $db->quote_identifier($name).' ';
-		
-		if(arr::is_assoc($data_type))
-		{
-			$type = key($data_type);
-			$params = $data_type[$type];
-			
-			$data .= strtoupper($type).'(';
-				
-			if(is_array($params))
-			{
-				array_map(array($db, 'quote'), $params);
-				$data .= implode($params, ',');
-			}
-			else
-			{
-				$data .= $params;
-			}
-				
-			$data .= ')';
-		}
-		else
-		{
-			$data .= strtoupper($data_type[0]);
-		}
-		
-		$options = array_map('strtoupper', $options);
-		
-		$options = implode($options, ' ');
-		
-		$data .= ' '.$options;
-		
-		return $data;
+		return $sql;
 	}
 
 	/**

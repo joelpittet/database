@@ -8,5 +8,7 @@
  * @license    http://kohanaphp.com/license.html
  */
 class Kohana_Database_Table_Column_Float extends Database_Table_Column_Int {
+	
+	public $exact;
 
 }

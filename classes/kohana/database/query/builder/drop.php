@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 /**
- * Database query builder for UPDATE statements.
+ * Database query builder for DROP statements.
  *
  * @package    Database
  * @author     Kohana Team
