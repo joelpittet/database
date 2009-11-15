@@ -1,21 +1,32 @@
 <?php defined('SYSPATH') or die('No direct script access.');
-/**
- * Table column integer object
- *
- * @package    Database
- * @author     Kohana Team
- * @copyright  (c) 2008-2009 Kohana Team
- * @license    http://kohanaphp.com/license.html
- */
-class Kohana_Database_Table_Column_Int extends Database_Table_Column {
+
+class Database_Table_Column_Int extends Database_Table_Column {
 	
+	// Not editable
+	public $precision;
+	public $scale;
+	public $maximum_value;
+	public $minimum_value;
+	
+	// Editable
 	public $is_unsigned;
 	public $is_auto_increment;
 	
-	public $precision;
-	public $scale;
+	public function __construct($maximum_value = NULL, $minimum_value = NULL)
+	{
+		$this->maximum_value = $maximum_value;
+		$this->minimum_value = $minimum_value;
+	}
 	
-	public $maximum_value;
+	public function load_schema( & $table, $schema)
+	{
+		$this->is_auto_increment = strpos($schema['EXTRA'], 'auto_increment') !== false;
+		$this->is_unsigned = strpos($schema['COLUMN_TYPE'], 'unsigned') !== false;
+		$this->precision = $schema['NUMERIC_PRECISION'];
+		$this->scale = $schema['NUMERIC_SCALE'];
+		
+		parent::load_schema($table, $schema);
+	}
 	
 	public function compile_constraints()
 	{

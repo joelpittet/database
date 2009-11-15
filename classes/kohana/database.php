@@ -1,415 +1,224 @@
 <?php defined('SYSPATH') or die('No direct script access.');
-/**
- * Database connection wrapper.
- *
- * @package    Database
- * @author     Kohana Team
- * @copyright  (c) 2008-2009 Kohana Team
- * @license    http://kohanaphp.com/license.html
- */
+
 abstract class Kohana_Database {
-
-	// Query types
-	const SELECT =  1;
-	const INSERT =  2;
-	const UPDATE =  3;
-	const DELETE =  4;
 	
-	 /**
-	* @var array SQL standard types
-	*/
-	protected static $_types = array(
-		// SQL-92
-		'bit'								=> array('type' => 'string', 'exact' => TRUE),
-		'bit varying'						=> array('type' => 'string'),
-		'char'								=> array('type' => 'string', 'exact' => TRUE),
-		'char varying'						=> array('type' => 'string'),
-		'character'							=> array('type' => 'string', 'exact' => TRUE),
-		'character varying'					=> array('type' => 'string'),
-		'date'								=> array('type' => 'string'),
-		'dec'								=> array('type' => 'float', 'exact' => TRUE),
-		'decimal'							=> array('type' => 'float', 'exact' => TRUE),
-		'double precision'					=> array('type' => 'float'),
-		'float'								=> array('type' => 'float'),
-		'int'								=> array('type' => 'int', 'min' => '-2147483648', 'max' => '2147483647'),
-		'integer'							=> array('type' => 'int', 'min' => '-2147483648', 'max' => '2147483647'),
-		'interval'							=> array('type' => 'string'),
-		'national char'						=> array('type' => 'string', 'exact' => TRUE),
-		'national char varying' 			=> array('type' => 'string'),
-		'national character' 				=> array('type' => 'string', 'exact' => TRUE),
-		'national character varying' 		=> array('type' => 'string'),
-		'nchar' 							=> array('type' => 'string', 'exact' => TRUE),
-		'nchar varying'						=> array('type' => 'string'),
-		'numeric'							=> array('type' => 'float', 'exact' => TRUE),
-		'real'								=> array('type' => 'float'),
-		'smallint'							=> array('type' => 'int', 'min' => '-32768', 'max' => '32767'),
-		'time'								=> array('type' => 'string'),
-		'time with time zone'				=> array('type' => 'string'),
-		'timestamp'							=> array('type' => 'string'),
-		'timestamp with time zone'			=> array('type' => 'string'),
-		'varchar'							=> array('type' => 'string'),
-		 
-		// SQL:1999
-		//'array','ref','row'
-		'binary large object'				=> array('type' => 'string', 'binary' => TRUE),
-		'blob'								=> array('type' => 'string', 'binary' => TRUE),
-		'boolean'							=> array('type' => 'bool'),
-		'char large object'					=> array('type' => 'string'),
-		'character large object'			=> array('type' => 'string'),
-		'clob'								=> array('type' => 'string'),
-		'national character large object'	=> array('type' => 'string'),
-		'nchar large object'				=> array('type' => 'string'),
-		'nclob'								=> array('type' => 'string'),
-		'time without time zone'			=> array('type' => 'string'),
-		'timestamp without time zone'		=> array('type' => 'string'),
-		 
-		// SQL:2003
-		'bigint'							=> array('type' => 'int', 'min' => '-9223372036854775808', 'max' => '9223372036854775807'),
-		 
-		// SQL:2008
-		'binary'							=> array('type' => 'string', 'binary' => TRUE, 'exact' => TRUE),
-		'binary varying'					=> array('type' => 'string', 'binary' => TRUE),
-		'varbinary'							=> array('type' => 'string', 'binary' => TRUE),
-	);
-
-	/**
-	 * @var  array  Database instances
-	 */
-	public static $instances = array();
-
-	/**
-	 * Get a singleton Database instance. If configuration is not specified,
-	 * it will be loaded from the database configuration file using the same
-	 * group as the name.
-	 *
-	 * @param   string   instance name
-	 * @param   array    configuration parameters
-	 * @return  Database
-	 */
-	public static function instance($name = 'default', array $config = NULL)
+	protected static $_instances = array();
+	
+	public static function factory(array $settings, $name = 'default', $interface = 'mysql')
 	{
-		if ( ! isset(Database::$instances[$name]))
-		{
-			if ($config === NULL)
-			{
-				// Load the configuration for this database
-				$config = Kohana::config('database')->$name;
-			}
-
-			if ( ! isset($config['type']))
-			{
-				throw new Kohana_Exception('Database type not defined in :name configuration',
-					array(':name' => $name));
-			}
-
-			// Set the driver class name
-			$driver = 'Database_'.ucfirst($config['type']);
-
-			// Create the database connection instance
-			new $driver($name, $config);
-		}
-
-		return Database::$instances[$name];
-	}
-
-	/**
-	 * @var  string  the last query executed
-	 */
-	public $last_query;
-
-	// Character that is used to quote identifiers
-	protected $_identifier = '"';
-
-	// Instance name
-	protected $_instance;
-
-	// Raw server connection
-	protected $_connection;
-
-	// Configuration array
-	protected $_config;
-
-	/**
-	 * Stores the database configuration locally and name the instance.
-	 *
-	 * @return  void
-	 */
-	final protected function __construct($name, array $config)
-	{
-		// Set the instance name
-		$this->_instance = $name;
+		$class = 'Database_Interface_'.ucfirst($interface);
 		
-		// Store the config locally
-		$this->_config = $config;
-
-		if (isset($config['connection']['dsn']) AND preg_match('/dbname=([^;\b]+)/', $config['connection']['dsn'], $matches))
+		if( ! class_exists($class))
 		{
-			// Grab database name from dsn if possible
-			$this->_database_name = $matches[1];
+			//Throw Error
 		}
-		else
-		{
-			// Fallback to connection database name
-			$this->_database_name = $config['connection']['database'];
-		}
-
-		// Store the database instance
-		Database::$instances[$name] = $this;
+		
+		return self::$_instances[$name] = new $class($name, $settings);
 	}
-
-	/**
-	 * Disconnect from the database when the object is destroyed.
-	 *
-	 * @return  void
-	 */
+	
+	public static function instance($name = 'default')
+	{
+		if( ! isset(self::$_instances[$name]))
+		{
+			//THROW ERROR
+		}
+		
+		return self::$_instances[$name];
+	}
+	
+	public $table_prefix;
+	public $last_query;
+	
+	protected $_database_name;
+	protected $_config;
+	protected $_instance;
+	
+	public function __construct($name, array $config)
+	{
+		$this->table_prefix = arr::get($config, 'table_prefix', NULL);
+		$this->_instance = get_class($this);
+		$this->_config = $config;
+	}
+	
 	final public function __destruct()
 	{
 		$this->disconnect();
 	}
-
-	/**
-	 * Returns the database instance name.
-	 *
-	 * @return  string
-	 */
-	final public function __toString()
+	
+	public function get_type($datatype)
 	{
-		return $this->_instance;
+		$datatype = strtolower($datatype);
+		
+		switch($datatype)
+		{
+			// EXACT STRING
+				// SQL-92
+			case 'bit':
+			case 'char':
+			case 'character':
+			case 'character varying':
+			case 'date':
+			case 'national char':
+			case 'interval':
+			case 'national character':
+			case 'nchar':
+				return new Database_Table_Column_String(true);
+			
+			// STRING
+				// SQL-92
+			case 'bit varying':
+			case 'char varying':
+			case 'national char varying':
+			case 'national character varying':
+			case 'nchar varying':
+			case 'time':
+			case 'time with time zone':
+			case 'varchar':
+				//SQL:1999
+			case 'char large object':
+			case 'character large object':
+			case 'clob':
+			case 'national character large object':
+			case 'nchar large object':
+			case 'nclob':
+			case 'time without time zone':
+			case 'timestamp without time zone':
+				return new Database_Table_Column_String;
+				
+			// BINARY STRING
+				// SQL:1999
+			case 'binary large object':
+			case 'blob':
+			case 'binary varying':
+			case 'varbinary':
+				return new Database_Table_Column_Binary;
+				
+			// EXACT BINARY STRING
+				// SQL:2008
+			case 'binary':
+				return new Database_Table_Column_Binary(true);
+			
+			// FLOAT EXACT
+				// SQL-92
+			case 'dec':
+			case 'decimal':
+			case 'numeric':
+				return new Database_Table_Column_Float(true);
+				
+			// FLOAT
+				// SQL-92
+			case 'double precision':
+			case 'float':
+			case 'real':
+				return new Database_Table_Column_Float;
+				
+			// INT
+				// SQL-92
+			case 'int':
+			case 'integer':
+				return new Database_Table_Column_Int(2147483647, -2147483648);
+				
+			// SMALLINT
+				// SQL-92
+			case 'smallint':
+				return new Database_Table_Column_Int(32767, -32768);
+				
+			// BIGINT
+				// SQL:2003
+			case 'bigint':
+				return new Database_Table_Column_Int(9223372036854775807, -9223372036854775808);
+				
+			// BOOL
+				// SQL:1999
+			case 'boolean':
+				return new Database_Table_Column_Bool;
+		}
+		
+		throw new Database_Exception('Datatype :dt could not be associated with any standard', 
+			array('dt' => $name));
 	}
-
-	/**
-	 * Connect to the database.
-	 *
-	 * @throws  Database_Exception
-	 * @return  void
-	 */
-	abstract public function connect();
-
-	/**
-	 * Disconnect from the database
-	 *
-	 * @return  boolean
-	 */
-	abstract public function disconnect();
-
-	/**
-	 * Set the connection character set.
-	 *
-	 * @throws  Database_Exception
-	 * @param   string   character set name
-	 * @return  void
-	 */
-	abstract public function set_charset($charset);
-
-	/**
-	 * Perform an SQL query of the given type.
-	 *
-	 * @param   integer  Database::SELECT, Database::INSERT, etc
-	 * @param   string   SQL query
-	 * @param   string   result object class, TRUE for stdClass, FALSE for assoc array
-	 * @return  object   Database_Result for SELECT queries
-	 * @return  array    list (insert id, row count) for INSERT queries
-	 * @return  integer  number of affected rows for all other queries
-	 */
-	abstract public function query($type, $sql, $as_object);
-
-	/**
-	 * Count the number of records in a table.
-	 *
-	 * @param   mixed    table name string or array(query, alias)
-	 * @return  integer
-	 */
-	public function count_records($table)
-	{
-		// Quote the table name
-		$table = $this->quote_identifier($table);
-
-		return $this->query(Database::SELECT, 'SELECT COUNT(*) AS total_row_count FROM '.$table, FALSE)
-			->get('total_row_count');
-	}
-
-	/**
-	 * List all of the tables in the database. Optionally, a LIKE string can
-	 * be used to search for specific tables.
-	 *
-	 * @param   string   table to search for
-	 * @param   bool     grab extended table information
-	 * @return  array
-	 */
-	public function list_tables($like = NULL, $details = FALSE)
+	
+	public function get_tables($details = FALSE, $like = NULL)
 	{
 		$database = $this->_database_name;
 
 		if (is_string($like))
 		{
 			// Specific tables
-			$result = $this->query(Database::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Tables WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME LIKE '.$this->quote($like), FALSE);
+			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Tables WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME LIKE '.$this->quote($this->table_prefix.$like), FALSE);
 		}
 		else
 		{
 			// All tables
-			$result = $this->query(Database::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Tables WHERE TABLE_SCHEMA = '.$this->quote($database), FALSE);
+			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Tables WHERE TABLE_SCHEMA = '.$this->quote($database), FALSE);
 		}
 
 		$tables = array();
-
-		if ($details)
+		
+		if($details)
 		{
-			foreach ($result as $row)
+			if(count($result) === 1)
 			{
-				// Grab table details as table => details
-				$tables[$row['TABLE_NAME']] = $row;
+				$tables = new Database_Table($this, $result[0]);
+			}
+			else
+			{
+				foreach ($result as $row)
+				{
+					$tables[$row['TABLE_NAME']] = new Database_Table($this, $result[0]);
+				}
 			}
 		}
 		else
 		{
-			foreach ($result as $row)
+			if(count($result) === 1)
 			{
-				// Grab table name
-				$tables[] = $row['TABLE_NAME'];
+				$tables = $row['TABLE_NAME'];
+			}
+			else
+			{
+				foreach ($result as $row)
+				{
+					$tables[] = $row['TABLE_NAME'];
+				}
 			}
 		}
 
 		return $tables;
 	}
-
-	/**
-	 * Lists all of the columns in a table. Optionally, a LIKE string can be
-	 * used to search for specific fields.
-	 *
-	 * @param   string  table to get columns from
-	 * @param   string  column to search for
-	 * @param   bool    grab extended column information
-	 * @return  array
-	 */
-	public function list_columns($table, $like = NULL, $details = FALSE)
+	
+	public function get_columns($table, $details = FALSE, $like = NULL)
 	{
 		$database = $this->_database_name;
 
 		if (is_string($like))
 		{
-			$result = $this->query(Database::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix().$table).' AND COLUMN_NAME LIKE '.$this->quote($like), FALSE);
+			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix.$table).' AND COLUMN_NAME LIKE '.$this->quote($like), FALSE);
 		}
 		else
 		{
-			$result = $this->query(Database::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix().$table), FALSE);
+			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix.$table), FALSE);
 		}
 		
 		$columns = array();
 		
-		//Get all static variables belonging to the active driver
-		$vars = get_class_vars('Database_'.ucfirst($this->_config['type']));
-
-		if ($details)
+		foreach($result as $row)
 		{
-			foreach ($result as $row)
+			if($details)
 			{
-				$db = Database::instance();
-				
-				$type = strtolower($row['DATA_TYPE']);
-				$column = new Database_Table_Column;
-				
-				if (isset($vars['_types'][$type]))
-				{
-					//Found native type, use it.
-					$type = $vars['_types'][$type]['type'];
-				}
-				elseif (isset(Database::$_types[$type]))
-				{
-					//Could not find native type, overloaded to defaults.
-					$type = Database::$_types[$type]['type'];
-				}
-				else
-				{
-					throw new Kohana_Exception('Datatype not recognised :data_type', 
-						array('data_type' => $type));
-				}
-				
-				if(class_exists($class = 'Database_Table_Column_'.ucfirst($type)))
-				{
-					$column = new $class;
-				}
-				
-				switch($type)
-				{
-					//Load all datatype specific values
-					case 'float' :
-					case 'int' : 
-						$column->precision = $row['NUMERIC_PRECISION'];
-						$column->scale = $row['NUMERIC_SCALE'];
-						break;
-					case 'string' :
-						$column->character_set = $row['CHARACTER_SET_NAME'];
-						$column->collation_name = $row['COLLATION_NAME'];
-						$column->maximum_length = $row['CHARACTER_MAXIMUM_LENGTH'];
-						$column->octet_length = $row['CHARACTER_OCTET_LENGTH'];
-						break;
-				}
-				
-				//Load all the non specific datatype values
-				$column->name = $row['COLUMN_NAME'];
-				$column->default = $row['COLUMN_DEFAULT'];
-				$column->is_nullable = $row['IS_NULLABLE'] == 'YES';
-				$column->is_primary = $row['COLUMN_KEY'] == 'PRI';
-				$column->descrition = $row['COLUMN_COMMENT'];
-				
-				//Lets fetch any aditional parametres eg enum()
-				preg_match("/^\S+\((.*?)\)/", $row['COLUMN_TYPE'], $matches);
-				
-				if(isset($matches[1]))
-				{
-					//Replace all quotations
-					$params = str_replace('\'', '', $matches[1]);
-					
-					if(strpos($params, ',') === false)
-					{
-						//Return value as it is
-						$column->datatype = array($row['DATA_TYPE'], $params);
-					}
-					else
-					{
-						//Commer seperated values are exploded into an array
-						$column->datatype = array($row['DATA_TYPE'], explode(',', $params));
-					}
-				}
-				else
-				{
-					//No additional params
-					$column->datatype = array($row['DATA_TYPE']);
-				}
-				
-				//Add it to the column stack
-				$columns[] = $column;
+				$column = $this->get_type(strtolower($row['DATA_TYPE']));
+				$column->load_schema($this, $row);
+				$columns[$row['COLUMN_NAME']] = $column;
 			}
-		}
-		else
-		{
-			foreach ($result as $row)
+			else
 			{
-				// Grab column names
 				$columns[] = $row['COLUMN_NAME'];
 			}
 		}
-
+		
 		return $columns;
 	}
-
-	/**
-	 * Return the table prefix.
-	 *
-	 * @return  string
-	 */
-	public function table_prefix()
-	{
-		return $this->_config['table_prefix'];
-	}
-
-	/**
-	 * Quote a value for an SQL query.
-	 *
-	 * @param   mixed   any value to quote
-	 * @return  string
-	 */
+	
 	public function quote($value)
 	{
 		if ($value === NULL)
@@ -453,13 +262,7 @@ abstract class Kohana_Database {
 
 		return $this->escape($value);
 	}
-
-	/**
-	 * Quote a database table name and adds the table prefix if needed
-	 *
-	 * @param   mixed   table name or array(table, alias)
-	 * @return  string
-	 */
+	
 	public function quote_table($value)
 	{
 		// Assign the table by reference from the value
@@ -475,22 +278,15 @@ abstract class Kohana_Database {
 		if (is_string($table) AND strpos($table, '.') === FALSE)
 		{
 			// Add the table prefix for tables
-			$table = $this->table_prefix().$table;
+			$table = $this->table_prefix.$table;
 		}
 
 		return $this->quote_identifier($value);
 	}
-
-	/**
-	 * Quote a database identifier, such as a column name. Adds the
-	 * table prefix to the identifier if a table name is present.
-	 *
-	 * @param   mixed   any identifier
-	 * @return  string
-	 */
+	
 	public function quote_identifier($value)
 	{
-		if ($value === '*')
+			if ($value === '*')
 		{
 			return $value;
 		}
@@ -530,7 +326,7 @@ abstract class Kohana_Database {
 			// Split the identifier into the individual parts
 			$parts = explode('.', $value);
 
-			if ($prefix = $this->table_prefix())
+			if ($prefix = $this->table_prefix)
 			{
 				// Get the offset of the table name, 2nd-to-last part
 				// This works for databases that can have 3 identifiers (Postgre)
@@ -548,14 +344,4 @@ abstract class Kohana_Database {
 			return $this->_identifier.$value.$this->_identifier;
 		}
 	}
-
-	/**
-	 * Sanitize a string by escaping characters that could cause an SQL
-	 * injection attack.
-	 *
-	 * @param   string   value to quote
-	 * @return  string
-	 */
-	abstract public function escape($value);
-
-} // End Database_Connection
+}

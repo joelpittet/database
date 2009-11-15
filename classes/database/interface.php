@@ -1,5 +1,5 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Database_Table_Column extends Kohana_Database_Table_Column {
+interface Database_Interface extends Kohana_Database_Interface {
 	
 }

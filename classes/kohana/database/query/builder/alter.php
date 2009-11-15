@@ -31,8 +31,13 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 * @param   string The table name
 	 * @return  void
 	 */
-	public function __construct($table)
+	public function __construct( Database_Table $table)
 	{
+		if( ! $table->loaded())
+		{
+			//TODO: Throw error, table must be loaded
+		}
+		
 		$this->_table = $table;
 	}
 	
@@ -55,6 +60,11 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 */
 	public function add( Database_Table_Column $column)
 	{
+		if($column->loaded())
+		{
+			//TODO: Throw exception, must clone column before adding it to a table	
+		}
+		
 		$this->_add_columns[] = $column;
 	}
 	
@@ -65,9 +75,21 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 * @param   object	The new column data.
 	 * @return  void
 	 */
-	public function modify($column_name, Database_Table_Column $column)
+	public function modify( Database_Table_Column $new_column, $existing_column = NULL)
 	{
-		$this->_modify_columns[] = $column;
+		if($existing_column === NULL)
+		{
+			if( ! $column->loaded() OR $column->table != $this->_table)
+			{
+				//TODO: Throw error
+			}
+			
+			$this->_modify_columns[$new_column->name] = $new_column;
+		}
+		else
+		{
+			
+		}
 	}
 	
 	/**
@@ -76,9 +98,9 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 * @param   string The name of the column to drop
 	 * @return  void
 	 */
-	public function drop($column_name)
+	public function drop($column)
 	{
-		$this->_drop_columns[] = $column;
+		$this->_drop_columns[] = $column_name;
 	}
 	
 	/**

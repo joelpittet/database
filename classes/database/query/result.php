@@ -1,12 +1,12 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 /**
- * Database query builder for DROP statements.
+ * Database result wrapper.
  *
  * @package    Database
  * @author     Kohana Team
  * @copyright  (c) 2008-2009 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-class Database_Query_Builder_Drop extends Kohana_Database_Query_Builder_Drop {
+abstract class Database_Query_Result extends Kohana_Database_Query_Result {
 
-}
+} // End Database_Query_Result

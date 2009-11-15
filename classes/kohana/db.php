@@ -8,7 +8,20 @@
  * @license    http://kohanaphp.com/license.html
  */
 class Kohana_DB {
-
+	
+	public static function alter($table)
+	{
+		return new Database_Query_Builder_Alter();
+	}
+	public static function create(Database_Table $table)
+	{
+		return new Database_Query_Builder_Create($table);
+	}
+	public static function drop($type, $name)
+	{
+		return new Database_Query_Builder_Drop($type, $name);
+	}
+	
 	/**
 	 * Create a new database query of the given type.
 	 *

@@ -7,4 +7,6 @@
  * @copyright  (c) 2008-2009 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-class Database_Query_Builder_Alter extends Kohana_Database_Query_Builder_Alter { }
+class Database_Query_Builder_Alter extends Kohana_Database_Query_Builder_Alter {
+	
+} // END Kohana_Database_Query_Builder_Alter
