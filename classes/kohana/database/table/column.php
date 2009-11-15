@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Database_Table_Column {
+class Kohana_Database_Table_Column {
 	
 	// Editable
 	public $name;
@@ -15,6 +15,11 @@ class Database_Table_Column {
 	
 	protected $_loaded = false;
 	protected $_original_name;
+	
+	public function __construct($datatype)
+	{
+		$this->set_datatype($datatype);
+	}
 	
 	public function load_schema( & $table, $schema)
 	{
@@ -74,6 +79,14 @@ class Database_Table_Column {
 			->execute();
 	}
 	
+	public function set_datatype($type, array $params = array())
+	{
+		$this->datatype = array(
+			$type,
+			$params
+		);
+	}
+	
 	public function drop()
 	{
 		DB::alter($this->table->name)
@@ -93,9 +106,11 @@ class Database_Table_Column {
 		
 		list($type, $params) = $this->datatype;
 		
-		if(isset($params))
+		$sql = strtoupper($type);
+		
+		if(isset($params) AND count($params) > 0)
 		{
-			$sql .= strtoupper($type).'(';
+			$sql .= '(';
 				
 			if(is_array($params))
 			{
@@ -121,10 +136,6 @@ class Database_Table_Column {
 				
 			$sql .= ')';
 		}
-		else
-		{
-			$sql .= strtoupper($type);
-		}
 		
 		return $sql;
 	}
@@ -133,12 +144,19 @@ class Database_Table_Column {
 	{
 		$db = Database::instance();
 		
-		if( ! $column->is_nullable)
+		$sql = '';
+		
+		if( ! $this->is_nullable)
 		{
 			$sql .= 'NOT NULL ';
 		}
 		
-		if($column->default != NULL)
+		if($this->is_primary)
+		{
+			$sql .= 'PRIMARY KEY ';
+		}
+		
+		if($this->default != NULL)
 		{
 			$sql .= 'DEFAULT '.$db->escape($column->default);
 		}

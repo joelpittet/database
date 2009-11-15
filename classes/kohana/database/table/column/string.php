@@ -10,9 +10,11 @@ class Kohana_Database_Table_Column_String extends Database_Table_Column {
 	
 	public $exact;
 	
-	public function __construct($exact = false)
+	public function __construct($datatype, $exact = false)
 	{
 		$this->exact = $exact;
+		
+		parent::__construct($datatype);
 	}
 	
 	public function load_schema( & $table, $schema)

@@ -7,6 +7,6 @@
  * @copyright  (c) 2008-2009 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-class Database_Query_Builder extends Kohana_Database_Query_Builder {
+abstract class Database_Query_Builder extends Kohana_Database_Query_Builder {
 
 } // End Database_Query_Result

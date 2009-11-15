@@ -62,7 +62,7 @@ abstract class Kohana_Database {
 			case 'interval':
 			case 'national character':
 			case 'nchar':
-				return new Database_Table_Column_String(true);
+				return new Database_Table_Column_String($datatype, true);
 			
 			// STRING
 				// SQL-92
@@ -83,7 +83,7 @@ abstract class Kohana_Database {
 			case 'nclob':
 			case 'time without time zone':
 			case 'timestamp without time zone':
-				return new Database_Table_Column_String;
+				return new Database_Table_Column_String($datatype);
 				
 			// BINARY STRING
 				// SQL:1999
@@ -91,47 +91,47 @@ abstract class Kohana_Database {
 			case 'blob':
 			case 'binary varying':
 			case 'varbinary':
-				return new Database_Table_Column_Binary;
+				return new Database_Table_Column_Binary($datatype);
 				
 			// EXACT BINARY STRING
 				// SQL:2008
 			case 'binary':
-				return new Database_Table_Column_Binary(true);
+				return new Database_Table_Column_Binary($datatype, true);
 			
 			// FLOAT EXACT
 				// SQL-92
 			case 'dec':
 			case 'decimal':
 			case 'numeric':
-				return new Database_Table_Column_Float(true);
+				return new Database_Table_Column_Float($datatype, true);
 				
 			// FLOAT
 				// SQL-92
 			case 'double precision':
 			case 'float':
 			case 'real':
-				return new Database_Table_Column_Float;
+				return new Database_Table_Column_Float($datatype);
 				
 			// INT
 				// SQL-92
 			case 'int':
 			case 'integer':
-				return new Database_Table_Column_Int(2147483647, -2147483648);
+				return new Database_Table_Column_Int($datatype, 2147483647, -2147483648);
 				
 			// SMALLINT
 				// SQL-92
 			case 'smallint':
-				return new Database_Table_Column_Int(32767, -32768);
+				return new Database_Table_Column_Int($datatype, 32767, -32768);
 				
 			// BIGINT
 				// SQL:2003
 			case 'bigint':
-				return new Database_Table_Column_Int(9223372036854775807, -9223372036854775808);
+				return new Database_Table_Column_Int($datatype, 9223372036854775807, -9223372036854775808);
 				
 			// BOOL
 				// SQL:1999
 			case 'boolean':
-				return new Database_Table_Column_Bool;
+				return new Database_Table_Column_Bool($datatype);
 		}
 		
 		throw new Database_Exception('Datatype :dt could not be associated with any standard', 

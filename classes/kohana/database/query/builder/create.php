@@ -8,29 +8,33 @@ class Kohana_Database_Query_Builder_Create extends Database_Query_Builder {
 	{
 		if($table->loaded())
 		{
-			//TODO: Throw error, table cant be loaded
+			throw new Database_Exception('Cannot create loaded table');
 		}
 		
 		$this->_table = $table;
 		
-		parent::__construct(Database::CREATE, '');
+		parent::__construct(Database_Query_Type::CREATE, '');
 	}
 	
 	public function compile(Database $db)
 	{
-		$query = 'CREATE TABLE '.$db->quote_table($this->_table).' (';
-		$columns = array();
+		$sql = 'CREATE TABLE '.$db->quote_table($this->_table->name);
 		
-		foreach($this->_columns as $column)
+		if(count($this->_table->columns()) > 0)
 		{
-			$columns[] = $column->compile();
+			$sql .= ' (';
+			
+			$columns = array();
+			
+			foreach($this->_table->columns(true) as $column)
+			{
+				$columns[] = $column->compile();
+			}
+			
+			$sql .= implode($columns, ',').')';
 		}
 		
-		$query .= implode($columns, ',');
-		
-		$query .= ');';
-		
-		return $query;
+		return $sql.';';
 	}
 	
 	public function reset()

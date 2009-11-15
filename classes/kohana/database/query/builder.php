@@ -10,6 +10,22 @@
 abstract class Kohana_Database_Query_Builder extends Database_Query {
 
 	/**
+	 * Compiles an a table column object into sql.
+	 *
+	 * @param   object  Database instance
+	 * @param   object  Database_Table_Column object
+	 * @return  string
+	 */
+	public static function compile_column(Database $db, Database_Table_Column $column)
+	{
+		return implode(' ', array(
+			$column->name,
+			$column->compile_datatype(),
+			$column->compile_constraints()
+		));
+	}
+	
+	/**
 	 * Compiles an array of JOIN statements into an SQL partial.
 	 *
 	 * @param   object  Database instance

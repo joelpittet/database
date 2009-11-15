@@ -8,6 +8,7 @@ class Kohana_Database_Table {
 	public $catalog;
 	
 	protected $_loaded = false;
+	protected $_columns = array();
 	
 	public function __construct($database, $information_schema = NULL)
 	{
@@ -30,19 +31,30 @@ class Kohana_Database_Table {
 	
 	public function columns($details = FALSE, $like = NULL)
 	{
+		if( ! $this->_loaded)
+		{
+			return $this->_columns;
+		}
+		
 		return $this->database->get_columns($this->name, $details, $like);
 	}
 	
-	public function add_column(Database_Column $column)
+	public function add_column(Database_Table_Column & $column)
 	{
-		DB::alter($this->name)
-			->add($column)
-			->execute();
+		if($this->_loaded)
+		{
+			DB::alter($this->name)
+				->add($column)
+				->execute();
+		}
+		
+		$this->_columns[] = $column;
+		$column->table = &$this;
 	}
 	
 	public function drop()
 	{
-		DB::drop('table', $this)
+		DB::drop($this)
 			->execute();
 	}
 	

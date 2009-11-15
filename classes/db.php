@@ -17,9 +17,9 @@ class DB {
 	{
 		return new Database_Query_Builder_Create($table);
 	}
-	public static function drop($type, $name)
+	public static function drop($object)
 	{
-		return new Database_Query_Builder_Drop($type, $name);
+		return new Database_Query_Builder_Drop($object);
 	}
 	
 	/**

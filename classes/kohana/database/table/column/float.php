@@ -4,10 +4,10 @@ class Kohana_Database_Table_Column_Float extends Database_Table_Column_Int {
 	
 	public $exact;
 	
-	public function __construct($exact = false)
+	public function __construct($datatype, $exact = false)
 	{
 		$this->exact = $exact;
 		
-		parent::__construct();
+		parent::__construct($datatype);
 	}
 }

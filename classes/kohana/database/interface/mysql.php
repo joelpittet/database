@@ -32,57 +32,57 @@ class Kohana_Database_Interface_Mysql extends Database implements Database_Inter
 			case 'longtext':
 			case 'enum':
 			case 'datetime':
-				return new Database_Table_Column_String;
+				return new Database_Table_Column_String($datatype);
 				
 			// Decimals
 			
 			case 'numeric unsigned':
 			case 'fixed unsigned':
 			case 'decimal unsigned':
-				return new Database_Table_Column_Float(true, 0);
+				return new Database_Table_Column_Float($datatype, true, 0);
 			
 			case 'real unsigned':
 			case 'float unsigned':
 			case 'double unsigned':
 			case 'double precision unsigned':
-				return new Database_Table_Column_Float(false, 0);
+				return new Database_Table_Column_Float($datatype, false, 0);
 				
 			case 'fixed':
-				return new Database_Table_Column_Float(true);
+				return new Database_Table_Column_Float($datatype, true);
 				
 			case 'double':
-				return new Database_Table_Column_Float;
+				return new Database_Table_Column_Float($datatype);
 				
 			// Binaries
 			
 			case 'tinyblob':
 			case 'mediumblob':
 			case 'longblob':
-				return new Database_Table_Column_Binary;
+				return new Database_Table_Column_Binary($datatype);
 				
 			// Integers
 				
 			case 'integer unsigned':
 			case 'int unsigned':
-				return new Database_Table_Column_Int(4294967295, 0);
+				return new Database_Table_Column_Int($datatype, 4294967295, 0);
 				
 			case 'bigint unsigned':
-				return new Database_Table_Column_Int(18446744073709551615, 0);
+				return new Database_Table_Column_Int($datatype, 18446744073709551615, 0);
 			
 			case 'mediumint':
-				return new Database_Table_Column_Int(8388607, -8388608);
+				return new Database_Table_Column_Int($datatype, 8388607, -8388608);
 				
 			case 'mediumint unsigned':
-				return new Database_Table_Column_Int(16777215, 0);
+				return new Database_Table_Column_Int($datatype, 16777215, 0);
 				
 			case 'smallint unsigned':
-				return new Database_Table_Column_Int(65535, 0);
+				return new Database_Table_Column_Int($datatype, 65535, 0);
 				
 			case 'tinyint':
-				return new Database_Table_Column_Int(127, -128);
+				return new Database_Table_Column_Int($datatype, 127, -128);
 			
 			case 'tinyint unsigned':
-				return new Database_Table_Column_Int(255, 0);
+				return new Database_Table_Column_Int($datatype, 255, 0);
 		}
 		
 		return parent::get_type($datatype);
