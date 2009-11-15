@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Database_Table_Column_Int extends Database_Table_Column {
+class Kohana_Database_Table_Column_Int extends Database_Table_Column {
 	
 	// Not editable
 	public $precision;
