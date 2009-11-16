@@ -36,7 +36,7 @@ class Kohana_Database_Table {
 			return $this->_columns;
 		}
 		
-		return $this->database->get_columns($this->name, $details, $like);
+		die(Kohana::debug($this->database->get_columns($this->name, $details, $like)));
 	}
 	
 	public function add_column(Database_Table_Column & $column)
@@ -62,6 +62,15 @@ class Kohana_Database_Table {
 	{
 		DB::create($this)
 			->execute();
+	}
+	
+	public function rename($new_name)
+	{
+		DB::alter($this)
+			->rename($new_name)
+			->execute();
+			
+		$this->name = $new_name;
 	}
 	
 	public function __clone()

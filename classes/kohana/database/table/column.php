@@ -25,7 +25,7 @@ class Kohana_Database_Table_Column {
 	{
 		$this->table = & $table;
 		
-		$this->_original_name = $schema['COLUMN_NAME'];
+		$this->_original_name = $this->name = $schema['COLUMN_NAME'];
 
 		$this->default = $schema['COLUMN_DEFAULT'];
 		$this->is_nullable = $schema['IS_NULLABLE'] == 'YES';
@@ -67,6 +67,13 @@ class Kohana_Database_Table_Column {
 			->execute();
 	}
 	
+	public function drop()
+	{
+		DB::alter($this->table)
+			->drop($this)
+			->execute();
+	}
+	
 	public function loaded()
 	{
 		return $this->_loaded;
@@ -74,8 +81,8 @@ class Kohana_Database_Table_Column {
 	
 	public function save()
 	{
-		DB::alter($this->table->name)
-			->modify($this->_original_name, $this)
+		DB::alter($this->table)
+			->modify($this, $this->_original_name)
 			->execute();
 	}
 	
@@ -85,12 +92,6 @@ class Kohana_Database_Table_Column {
 			$type,
 			$params
 		);
-	}
-	
-	public function drop()
-	{
-		DB::alter($this->table->name)
-			->drop($this->name);
 	}
 	
 	public function compile()

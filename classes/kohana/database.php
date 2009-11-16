@@ -202,17 +202,36 @@ abstract class Kohana_Database {
 		
 		$columns = array();
 		
-		foreach($result as $row)
+		if($details)
 		{
-			if($details)
+			if(count($result) === 1)
 			{
-				$column = $this->get_type(strtolower($row['DATA_TYPE']));
-				$column->load_schema($this, $row);
+				$columns = $this->get_type(strtolower($row['DATA_TYPE']));
+				$columns->load_schema($this, $row);
 				$columns[$row['COLUMN_NAME']] = $column;
 			}
 			else
 			{
-				$columns[] = $row['COLUMN_NAME'];
+				foreach ($result as $row)
+				{
+					$column = $this->get_type(strtolower($row['DATA_TYPE']));
+					$column->load_schema($this, $row);
+					$columns[$row['COLUMN_NAME']] = $column;
+				}
+			}
+		}
+		else
+		{
+			if(count($result) === 1)
+			{
+				$columns = $row['COLUMN_NAME'];
+			}
+			else
+			{
+				foreach ($result as $row)
+				{
+					$columns[] = $row['COLUMN_NAME'];
+				}
 			}
 		}
 		
@@ -286,7 +305,7 @@ abstract class Kohana_Database {
 	
 	public function quote_identifier($value)
 	{
-			if ($value === '*')
+		if ($value === '*')
 		{
 			return $value;
 		}

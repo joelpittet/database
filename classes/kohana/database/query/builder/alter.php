@@ -35,7 +35,9 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	{
 		if( ! $table->loaded())
 		{
-			//TODO: Throw error, table must be loaded
+			throw new Database_Exception('Table tbl must be loaded to perform alter queries.', array(
+				'tbl' => $table->name
+			));
 		}
 		
 		$this->_table = $table;
@@ -62,7 +64,7 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	{
 		if($column->loaded())
 		{
-			//TODO: Throw exception, must clone column before adding it to a table	
+			$column = clone $column;
 		}
 		
 		$this->_add_columns[] = $column;
@@ -75,21 +77,22 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 * @param   object	The new column data.
 	 * @return  void
 	 */
-	public function modify( Database_Table_Column $new_column, $existing_column = NULL)
+	public function modify( Database_Table_Column $new_column, $existing_column)
 	{
-		if($existing_column === NULL)
+		if ( ! is_object($existing_column))
 		{
-			if( ! $column->loaded() OR $column->table != $this->_table)
+			$existing_column = $this->_table->columns(true, $existing_column);
+			
+			if(count($existing_column) !== 1)
 			{
-				//TODO: Throw error
+				throw new Database_Exception('col could not be found in tbl', array(
+					'col' => ucfirst($existing_column),
+					'tbl' => $this->_table->name
+				));
 			}
-			
-			$this->_modify_columns[$new_column->name] = $new_column;
 		}
-		else
-		{
-			
-		}
+		
+		$this->_modify_columns[$existing_column->name] = $new_column;
 	}
 	
 	/**
@@ -100,7 +103,7 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 */
 	public function drop($column)
 	{
-		$this->_drop_columns[] = $column_name;
+		$this->_drop_columns[] = $column;
 	}
 	
 	/**
@@ -111,7 +114,7 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 */
 	public function compile(Database $db)
 	{
-		$query = 'ALTER TABLE '.$db->quote_table($this->_table).' ';
+		$query = 'ALTER TABLE '.$db->quote_table($this->_table->name).' ';
 		$lines = array();
 		
 		if($this->_name !== NULL)
@@ -125,9 +128,9 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 			
 			$sql = $query.'ADD(';
 			
-			foreach($this->_add_columns as $name => $params)
+			foreach($this->_add_columns as $column)
 			{
-				$columns[] = Database_Query_Builder::compile_column($name, $params);
+				$columns[] = Database_Query_Builder::compile_column($column);
 			}
 			
 			$sql .= implode($columns, ',').'); ';
@@ -141,9 +144,9 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 			
 			$sql = $query.'MODIFY(';
 			
-			foreach($this->_modify_columns as $name => $params)
+			foreach($this->_modify_columns as $column)
 			{
-				$columns[] = Database_Query_Builder::compile_column($name, $params);
+				$columns[] = Database_Query_Builder::compile_column($column);
 			}
 			
 			$sql .= implode($columns, ',').'); ';
@@ -153,9 +156,9 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 		
 		if(count($this->_drop_columns) > 0)
 		{
-			foreach($this->_drop_columns as $name)
+			foreach($this->_drop_columns as $column)
 			{
-				$drop = new Database_Query_Builder_Drop('column', $name);
+				$drop = new Database_Query_Builder_Drop($column);
 				$lines[] = $drop->compile().';';
 			}
 		}
