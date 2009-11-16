@@ -43,7 +43,7 @@ class Kohana_Database_Table {
 	{
 		if($this->_loaded)
 		{
-			DB::alter($this->name)
+			DB::alter($this)
 				->add($column)
 				->execute();
 		}
