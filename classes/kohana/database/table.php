@@ -36,7 +36,7 @@ class Kohana_Database_Table {
 			return $this->_columns;
 		}
 		
-		die(Kohana::debug($this->database->get_columns($this->name, $details, $like)));
+		return $this->database->get_columns($this, $details, $like);
 	}
 	
 	public function add_column(Database_Table_Column & $column)

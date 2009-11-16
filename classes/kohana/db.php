@@ -9,7 +9,7 @@
  */
 class Kohana_DB {
 	
-	public static function alter($table)
+	public static function alter( Database_Table $table)
 	{
 		return new Database_Query_Builder_Alter($table);
 	}
@@ -17,9 +17,9 @@ class Kohana_DB {
 	{
 		return new Database_Query_Builder_Create($table);
 	}
-	public static function drop($type, $name)
+	public static function drop($object)
 	{
-		return new Database_Query_Builder_Drop($type, $name);
+		return new Database_Query_Builder_Drop($object);
 	}
 	
 	/**

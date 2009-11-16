@@ -23,7 +23,7 @@ class Kohana_Database_Table_Column {
 	
 	public function load_schema( & $table, $schema)
 	{
-		$this->table = & $table;
+		$this->table =& $table;
 		
 		$this->_original_name = $this->name = $schema['COLUMN_NAME'];
 

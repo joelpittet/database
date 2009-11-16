@@ -161,8 +161,8 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 		{
 			foreach($this->_drop_columns as $column)
 			{
-				$drop = new Database_Query_Builder_Drop($column);
-				$sql .= $drop->compile().';';
+				$drop = new Database_Query_Builder_Drop('column', $column);
+				$sql .= $drop->compile($column->table->database).';';
 			}
 		}
 		

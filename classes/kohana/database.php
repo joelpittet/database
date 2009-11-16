@@ -187,17 +187,17 @@ abstract class Kohana_Database {
 		return $tables;
 	}
 	
-	public function get_columns($table, $details = FALSE, $like = NULL)
+	public function get_columns( Database_Table & $table, $details = FALSE, $like = NULL)
 	{
 		$database = $this->_database_name;
-
+		
 		if (is_string($like))
 		{
-			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix.$table).' AND COLUMN_NAME LIKE '.$this->quote($like), FALSE);
+			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix.$table->name).' AND COLUMN_NAME LIKE '.$this->quote($like), FALSE);
 		}
 		else
 		{
-			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix.$table), FALSE);
+			$result = $this->query(Database_Query_Type::SELECT, 'SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_SCHEMA = '.$this->quote($database).' AND TABLE_NAME = '.$this->quote($this->table_prefix.$table->name), FALSE);
 		}
 		
 		$columns = array();
@@ -206,16 +206,15 @@ abstract class Kohana_Database {
 		{
 			if(count($result) === 1)
 			{
-				$columns = $this->get_type(strtolower($row['DATA_TYPE']));
-				$columns->load_schema($this, $row);
-				$columns[$row['COLUMN_NAME']] = $column;
+				$columns = $this->get_type(strtolower($result[0]['DATA_TYPE']));
+				$columns->load_schema($table, $result[0]);
 			}
 			else
 			{
 				foreach ($result as $row)
 				{
 					$column = $this->get_type(strtolower($row['DATA_TYPE']));
-					$column->load_schema($this, $row);
+					$column->load_schema($table, $row);
 					$columns[$row['COLUMN_NAME']] = $column;
 				}
 			}

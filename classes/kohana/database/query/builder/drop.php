@@ -10,30 +10,26 @@
 class Kohana_Database_Query_Builder_Drop extends Database_Query_Builder {
 	
 	protected $_object;
+	protected $_drop_type;
 	
-	public function __construct($object)
+	public function __construct($type, $object)
 	{
+		$this->_drop_type = $type;
 		$this->_object = $object;
 		
 		parent::__construct(Database_Query_Type::DROP, '');
 	}
 	
 	public function compile(Database $db)
-	{
-		$class = get_parent_class($this->_object);
-		$class = $class ? $class : get_class($this->_object);
-		
-		switch($class)
+	{	
+		switch($this->_drop_type)
 		{
-			case 'Kohana_Database':
-				$query = 'DROP DATABASE '.$db->quote($this->_object->name);
-				break;
-			case 'Kohana_Database_Table':
-				$query = 'DROP TABLE '.$db->quote_table($this->_object->name);
-				break;
-			case 'Kohana_Database_Table_Column':
-				$query = 'DROP COLUMN '.$db->quote_identifier($this->_object->name);
-				break;
+			case 'database':
+				return 'DROP DATABASE '.$db->quote($this->_object->name);
+			case 'table':
+				return 'DROP TABLE '.$db->quote_table($this->_object->name);
+			case 'column':
+				return 'DROP COLUMN '.$db->quote_identifier($this->_object->name);
 			default:
 				throw new Database_Exception('Invalid drop object');
 		}
