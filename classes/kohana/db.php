@@ -11,7 +11,7 @@ class Kohana_DB {
 	
 	public static function alter($table)
 	{
-		return new Database_Query_Builder_Alter();
+		return new Database_Query_Builder_Alter($table);
 	}
 	public static function create(Database_Table $table)
 	{
