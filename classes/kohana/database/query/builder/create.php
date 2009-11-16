@@ -8,7 +8,7 @@ class Kohana_Database_Query_Builder_Create extends Database_Query_Builder {
 	{
 		if($table->loaded())
 		{
-			throw new Database_Exception('Cannot create loaded table');
+			throw new Database_Exception('Cannot create loaded table.');
 		}
 		
 		$this->_table = $table;
@@ -31,7 +31,7 @@ class Kohana_Database_Query_Builder_Create extends Database_Query_Builder {
 				$columns[] = $column->compile();
 			}
 			
-			$sql .= implode($columns, ',').')';
+			$sql .= implode($columns, ',').','.$this->_table->compile_constraints().')';
 		}
 		
 		return $sql.';';

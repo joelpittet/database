@@ -134,8 +134,8 @@ abstract class Kohana_Database {
 				return new Database_Table_Column_Bool($datatype);
 		}
 		
-		throw new Database_Exception('Datatype :dt could not be associated with any standard', 
-			array('dt' => $name));
+		throw new Database_Exception('Datatype dt could not be associated with any standard', 
+			array('dt' => $datatype));
 	}
 	
 	public function get_tables($details = FALSE, $like = NULL)

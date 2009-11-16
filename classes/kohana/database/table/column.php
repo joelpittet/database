@@ -8,6 +8,7 @@ class Kohana_Database_Table_Column {
 	public $is_nullable;
 	public $is_primary;
 	public $datatype;
+	public $is_unique;
 	
 	// Not editable
 	public $ordinal_position;
@@ -86,7 +87,7 @@ class Kohana_Database_Table_Column {
 			->execute();
 	}
 	
-	public function set_datatype($type, array $params = array())
+	public function set_datatype($type, array $params = NULL)
 	{
 		$this->datatype = array(
 			$type,
@@ -96,9 +97,7 @@ class Kohana_Database_Table_Column {
 	
 	public function compile()
 	{
-		$db = $this->table->database;
-		
-		return Database_Query_Builder::compile_column($db, $this);
+		return Database_Query_Builder::compile_column($this);
 	}
 	
 	public function compile_datatype()
@@ -145,11 +144,6 @@ class Kohana_Database_Table_Column {
 		if( ! $this->is_nullable)
 		{
 			$sql .= 'NOT NULL ';
-		}
-		
-		if($this->is_primary)
-		{
-			$sql .= 'PRIMARY KEY ';
 		}
 		
 		if($this->default != NULL)

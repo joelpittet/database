@@ -39,6 +39,56 @@ class Kohana_Database_Table {
 		return $this->database->get_columns($this, $details, $like);
 	}
 	
+	public function compile_constraints()
+	{
+		$db = $this->database;
+		$columns = $this->columns(true);
+		
+		$primary_keys = array();
+		$unique_keys = array();
+		
+		foreach($columns as $column)
+		{
+			if($column->is_primary)
+			{
+				$primary_keys[] = $column;
+			}
+			elseif($column->is_unique)
+			{
+				$unique_keys[] = $column;
+			}
+		}
+		
+		$constrains = array();
+		
+		// PROCESS PRIMARY KEYS
+		// NAMING: pk_field1_field2_...
+		
+		$key_name = 'pk_';
+		$keys = '';
+		
+		foreach($primary_keys as $name => $key)
+		{
+			$key_name .= $key->name.'_';
+			$keys .= $db->quote_identifier($key->name).',';
+		}
+		
+		$key_name = rtrim($key_name, '_');
+		$keys = rtrim($keys, ',');
+		
+		$constrains[] = 'CONSTRAINT '.$key_name.' PRIMARY KEY ('.$keys.')';
+		
+		// PROCESS UNIQUE KEYS
+		// NAMING: key_field
+		
+		foreach($unique_keys as $key)
+		{
+			$constrains[] = 'CONSTRAINT key_'.$key->name.' UNIQUE('.$db->quote_identifier($key->name).')';
+		}
+		
+		return implode(',', $constrains);
+	}
+	
 	public function add_column(Database_Table_Column & $column)
 	{
 		$column->table =& $this;
