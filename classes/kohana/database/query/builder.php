@@ -16,10 +16,12 @@ abstract class Kohana_Database_Query_Builder extends Database_Query {
 	 * @param   object  Database_Table_Column object
 	 * @return  string
 	 */
-	public static function compile_column(Database $db, Database_Table_Column $column)
+	public static function compile_column(Database_Table_Column $column)
 	{
+		$db = $column->table->database;
+		
 		return implode(' ', array(
-			$column->name,
+			$db->quote_identifier($column->name),
 			$column->compile_datatype(),
 			$column->compile_constraints()
 		));

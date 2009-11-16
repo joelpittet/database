@@ -52,6 +52,10 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	public function rename($name)
 	{
 		$this->_name = $name;
+		
+		$this->execute();
+		
+		return $this;
 	}
 	
 	/**
@@ -68,6 +72,8 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 		}
 		
 		$this->_add_columns[] = $column;
+		
+		return $this;
 	}
 	
 	/**
@@ -93,6 +99,8 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 		}
 		
 		$this->_modify_columns[$existing_column->name] = $new_column;
+		
+		return $this;
 	}
 	
 	/**
@@ -104,6 +112,8 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	public function drop($column)
 	{
 		$this->_drop_columns[] = $column;
+		
+		return $this;
 	}
 	
 	/**
@@ -114,35 +124,31 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 	 */
 	public function compile(Database $db)
 	{
-		$query = 'ALTER TABLE '.$db->quote_table($this->_table->name).' ';
+		$sql = 'ALTER TABLE '.$db->quote_table($this->_table->name).' ';
 		$lines = array();
 		
-		if($this->_name !== NULL)
+		if ($this->_name !== NULL)
 		{
-			$lines[] = 'RENAME TO '.$db->quote_table($this->_name).'; ';
+			$sql .= 'RENAME TO '.$db->quote_table($this->_name).'; ';
 		}
-		
-		if(count($this->_add_columns) > 0)
+		elseif (count($this->_add_columns) > 0)
 		{
 			$columns = array();
 			
-			$sql = $query.'ADD(';
+			$sql .= 'ADD ';
 			
 			foreach($this->_add_columns as $column)
 			{
 				$columns[] = Database_Query_Builder::compile_column($column);
 			}
 			
-			$sql .= implode($columns, ',').'); ';
-			
-			$lines[] = $sql;
+			$sql .= implode($columns, ',').' ';
 		}
-		
-		if(count($this->_modify_columns) > 0)
+		elseif (count($this->_modify_columns) > 0)
 		{
 			$columns = array();
 			
-			$sql = $query.'MODIFY(';
+			$sql .= 'MODIFY(';
 			
 			foreach($this->_modify_columns as $column)
 			{
@@ -150,18 +156,17 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 			}
 			
 			$sql .= implode($columns, ',').'); ';
-			
-			$lines[] = $sql;
 		}
-		
-		if(count($this->_drop_columns) > 0)
+		elseif (count($this->_drop_columns) > 0)
 		{
 			foreach($this->_drop_columns as $column)
 			{
 				$drop = new Database_Query_Builder_Drop($column);
-				$lines[] = $drop->compile().';';
+				$sql .= $drop->compile().';';
 			}
 		}
+		
+		return $sql;
 	}
 	
 	public function reset()

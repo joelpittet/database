@@ -41,6 +41,8 @@ class Kohana_Database_Table {
 	
 	public function add_column(Database_Table_Column & $column)
 	{
+		$column->table =& $this;
+		
 		if($this->_loaded)
 		{
 			DB::alter($this)
@@ -49,7 +51,6 @@ class Kohana_Database_Table {
 		}
 		
 		$this->_columns[] = $column;
-		$column->table = &$this;
 	}
 	
 	public function drop()

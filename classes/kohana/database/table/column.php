@@ -109,33 +109,28 @@ class Kohana_Database_Table_Column {
 		
 		$sql = strtoupper($type);
 		
-		if(isset($params) AND count($params) > 0)
+		if(is_array($params) AND count($params) > 0)
 		{
 			$sql .= '(';
 				
-			if(is_array($params))
+			foreach($params as & $param)
 			{
-				foreach($params as & $param)
+				if( ! is_int($param))
 				{
-					if( ! ctype_digit($param))
-					{
-						$param = $db->escape($param);
-					}
+					$param = $db->escape($param);
 				}
+			}
 
-				$sql .= implode($params, ',');
-			}
-			else
+			$sql .= implode($params, ',').')';
+		}
+		elseif (isset($params))
+		{
+			if( ! is_int($params))
 			{
-				if( ! ctype_digit($params))
-				{
-					$params = $db->escape($params);
-				}
-				
-				$sql .= $params;
+				$params = $db->escape($params);
 			}
-				
-			$sql .= ')';
+			
+			$sql .= '('.$params.')';
 		}
 		
 		return $sql;
