@@ -148,14 +148,14 @@ class Kohana_Database_Query_Builder_Alter extends Database_Query_Builder {
 		{
 			$columns = array();
 			
-			$sql .= 'MODIFY(';
+			$sql .= 'MODIFY ';
 			
-			foreach($this->_modify_columns as $column)
+			foreach($this->_modify_columns as $original_name => $column)
 			{
 				$columns[] = Database_Query_Builder::compile_column($column);
 			}
 			
-			$sql .= implode($columns, ',').'); ';
+			$sql .= implode($columns, ',').'; ';
 		}
 		elseif (count($this->_drop_columns) > 0)
 		{

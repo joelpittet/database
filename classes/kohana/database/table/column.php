@@ -115,7 +115,7 @@ class Kohana_Database_Table_Column {
 				
 			foreach($params as & $param)
 			{
-				if( ! is_int($param))
+				if( ! ( is_int($params) OR ctype_digit($params) ))
 				{
 					$param = $db->escape($param);
 				}
@@ -125,7 +125,7 @@ class Kohana_Database_Table_Column {
 		}
 		elseif (isset($params))
 		{
-			if( ! is_int($params))
+			if( ! ( is_int($params) OR ctype_digit($params) ))
 			{
 				$params = $db->escape($params);
 			}
