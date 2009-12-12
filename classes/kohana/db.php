@@ -5,23 +5,10 @@
  * @package    Database
  * @author     Kohana Team
  * @copyright  (c) 2009 Kohana Team
- * @license    http://kohanaphp.com/license.html
+ * @license    http://kohanaphp.com/license
  */
 class Kohana_DB {
-	
-	public static function alter( Database_Table $table)
-	{
-		return new Database_Query_Builder_Alter($table);
-	}
-	public static function create(Database_Table $table)
-	{
-		return new Database_Query_Builder_Create($table);
-	}
-	public static function drop($object)
-	{
-		return new Database_Query_Builder_Drop($object);
-	}
-	
+
 	/**
 	 * Create a new database query of the given type.
 	 *
@@ -44,6 +31,17 @@ class Kohana_DB {
 	public static function select($columns = NULL)
 	{
 		return new Database_Query_Builder_Select(func_get_args());
+	}
+
+	/**
+	 * Create a new SELECT builder from an array of columns
+	 *
+	 * @param   array   columns to select
+	 * @return  Database_Query_Builder_Select
+	 */
+	public static function select_array(array $columns = NULL)
+	{
+		return new Database_Query_Builder_Select($columns);
 	}
 
 	/**

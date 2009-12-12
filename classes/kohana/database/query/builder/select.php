@@ -5,7 +5,7 @@
  * @package    Database
  * @author     Kohana Team
  * @copyright  (c) 2008-2009 Kohana Team
- * @license    http://kohanaphp.com/license.html
+ * @license    http://kohanaphp.com/license
  */
 class Kohana_Database_Query_Builder_Select extends Database_Query_Builder_Where {
 
@@ -81,6 +81,19 @@ class Kohana_Database_Query_Builder_Select extends Database_Query_Builder_Where 
 	{
 		$columns = func_get_args();
 
+		$this->_select = array_merge($this->_select, $columns);
+
+		return $this;
+	}
+
+	/**
+	 * Choose the columns to select from, using an array.
+	 *
+	 * @param   array  list of column names or aliases
+	 * @return  $this
+	 */
+	public function select_array(array $columns)
+	{
 		$this->_select = array_merge($this->_select, $columns);
 
 		return $this;

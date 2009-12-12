@@ -5,28 +5,10 @@
  * @package    Database
  * @author     Kohana Team
  * @copyright  (c) 2008-2009 Kohana Team
- * @license    http://kohanaphp.com/license.html
+ * @license    http://kohanaphp.com/license
  */
 abstract class Kohana_Database_Query_Builder extends Database_Query {
 
-	/**
-	 * Compiles an a table column object into sql.
-	 *
-	 * @param   object  Database instance
-	 * @param   object  Database_Table_Column object
-	 * @return  string
-	 */
-	public static function compile_column(Database_Table_Column $column)
-	{
-		$db = $column->table->database;
-		
-		return implode(' ', array(
-			$db->quote_identifier($column->name),
-			$column->compile_datatype(),
-			$column->compile_constraints()
-		));
-	}
-	
 	/**
 	 * Compiles an array of JOIN statements into an SQL partial.
 	 *
@@ -90,8 +72,25 @@ abstract class Kohana_Database_Query_Builder extends Database_Query {
 					// Split the condition
 					list($column, $op, $value) = $condition;
 
+					// Database operators are always uppercase
+					$op = strtoupper($op);
+
+					if ($op === 'BETWEEN' AND is_array($value))
+					{
+						// BETWEEN always has exactly two arguments
+						list($min, $max) = $value;
+
+						// Quote the min and max value
+						$value = $db->quote($min).' AND '.$db->quote($max);
+					}
+					else
+					{
+						// Quote the entire value normally
+						$value = $db->quote($value);
+					}
+
 					// Append the statement to the query
-					$sql .= $db->quote_identifier($column).' '.strtoupper($op).' '.$db->quote($value);
+					$sql .= $db->quote_identifier($column).' '.$op.' '.$value;
 				}
 
 				$last_condition = $condition;
