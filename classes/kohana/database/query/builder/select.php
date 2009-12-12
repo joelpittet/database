@@ -113,26 +113,6 @@ class Kohana_Database_Query_Builder_Select extends Database_Query_Builder_Where 
 	}
 
 	/**
-	 * Choose the columns to select from using an associative array
-	 *
-	 * @param   array(alias => column)
-	 * @return  $this
-	 */
-	public function select_assoc(array $columns_assoc = NULL)
-	{
-		$columns = array();
-		foreach ($columns_assoc as $alias => $column)
-		{
-			// Pass in the alias as the expected array or only the string
-			$columns[] = (is_string($alias)) ? array($column, $alias) : $column;
-		}
-
-		$this->_select = array_merge($this->_select, $columns);
-
-		return $this;	
-	}
-
-	/**
 	 * Choose the tables to select "FROM ..."
 	 *
 	 * @param   mixed  table name or array($table, $alias) or object
