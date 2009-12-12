@@ -89,15 +89,29 @@ class Kohana_Database_Query_Builder_Select extends Database_Query_Builder_Where 
 	/**
 	 * Choose the columns to select from, using an array.
 	 *
-	 * @param   array  list of column names or aliases
+	 * @param   array  list of column names or array aliases or key/value aliases array(alias => column)
 	 * @return  $this
 	 */
 	public function select_array(array $columns)
 	{
+		if (Arr::is_assoc($columns))
+		{
+			$columns_assoc = array();
+
+			foreach ($columns as $alias => $column)
+			{
+				// Pass in the alias as the expected array($column, $alias) or only the string
+				$columns_assoc[] = (is_string($alias)) ? array($column, $alias) : $column;
+			}
+
+			$columns = $columns_assoc;
+		}
+		
 		$this->_select = array_merge($this->_select, $columns);
 
 		return $this;
 	}
+
 
 	/**
 	 * Choose the tables to select "FROM ..."
