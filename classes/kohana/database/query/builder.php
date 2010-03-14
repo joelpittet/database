@@ -5,7 +5,7 @@
  * @package    Database
  * @author     Kohana Team
  * @copyright  (c) 2008-2009 Kohana Team
- * @license    http://kohanaphp.com/license
+ * @license    http://kohanaphp.com/license.html
  */
 abstract class Kohana_Database_Query_Builder extends Database_Query {
 
@@ -72,31 +72,31 @@ abstract class Kohana_Database_Query_Builder extends Database_Query {
 					// Split the condition
 					list($column, $op, $value) = $condition;
 
-					// Database operators are always uppercase
-					$op = strtoupper($op);
-
-					if ($op === 'BETWEEN' AND is_array($value))
-					{
-						// BETWEEN always has exactly two arguments
-						list($min, $max) = $value;
-
-						// Quote the min and max value
-						$value = $db->quote($min).' AND '.$db->quote($max);
-					}
-					else
-					{
-						// Quote the entire value normally
-						$value = $db->quote($value);
-					}
-
 					// Append the statement to the query
-					$sql .= $db->quote_identifier($column).' '.$op.' '.$value;
+					$sql .= $db->quote_identifier($column).' '.strtoupper($op).' '.$db->quote($value);
 				}
 
 				$last_condition = $condition;
 			}
 		}
 
+		return $sql;
+	}
+
+	/**
+	 * Compiles a table column from a given parameter array.
+	 *
+	 * @param   object  Database instance
+	 * @param   object  Column object
+	 * @return  string
+	 */
+	public static function compile_column(Database $db, Database_Table_Column $column)
+	{
+		$sql = $db->quote_identifier($column->name).' ';
+
+		$sql .= $column->compile_datatype().' ';
+		$sql .= $column->compile_constraints();
+		
 		return $sql;
 	}
 
