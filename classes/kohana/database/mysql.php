@@ -126,7 +126,7 @@ class Kohana_Database_MySQL extends Database {
 		catch (Exception $e)
 		{
 			// Database is probably not disconnected
-			$status = is_resource($this->_connection);
+			$status = ! is_resource($this->_connection);
 		}
 
 		return $status;
